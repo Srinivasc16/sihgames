@@ -633,13 +633,13 @@
                 let filteredQuestions;
                 switch (mode) {
                     case 'easy':
-                        filteredQuestions = constitutionalQuestions.filter(q => q.answer <= 50);
+                        filteredQuestions = constitutionalQuestions.filter(q => q.answer > 150);
                         break;
                     case 'medium':
                         filteredQuestions = constitutionalQuestions.filter(q => q.answer > 50 && q.answer <= 150);
                         break;
                     case 'hard':
-                        filteredQuestions = constitutionalQuestions.filter(q => q.answer > 150);
+                        filteredQuestions = constitutionalQuestions.filter(q => q.answer <= 50);
                         break;
                 }
 
