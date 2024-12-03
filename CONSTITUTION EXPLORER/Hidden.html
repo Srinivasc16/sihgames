@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Constitution Explorer Game</title>
+  <style>
+    :root {
+  --indian-saffron: #FF9933;
+  --indian-green: #138808;
+  --indian-white: #FFFFFF;
+  --indian-blue: #000080;
+  --ashoka-blue: #0000FF;
+  --parchment: #F4ECD8;
+  --royal-gold: #FFD700;
+}
+
+body {
+  font-family: 'Noto Sans', Arial, sans-serif;
+  background-image: url('assets/ashoka-chakra-pattern.png');
+  background-color: var(--parchment);
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+/* Instructions Modal Styling */
+#instructions-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(
+    rgba(255, 153, 51, 0.9),
+    rgba(255, 255, 255, 0.9),
+    rgba(19, 136, 8, 0.9)
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+}
+
+#instructions-overlay {
+  background-color: var(--parchment);
+  padding: 40px;
+  border-radius: 15px;
+  max-width: 600px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 3px solid var(--indian-saffron);
+  background-image: url('assets/constitution-watermark.png');
+  background-size: cover;
+  background-blend-mode: overlay;
+}
+
+#game-instructions {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 2px solid var(--indian-green);
+}
+
+#levels-overview {
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 2px solid var(--indian-saffron);
+}
+
+#start-game-btn {
+  background-color: var(--indian-saffron);
+  color: var(--indian-white);
+  border: 2px solid var(--indian-green);
+  padding: 12px 25px;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+#start-game-btn:hover {
+  background-color: var(--indian-green);
+  transform: scale(1.05);
+}
+
+/* Main Game Container */
+#main-container {
+  display: flex;
+  width: 90%;
+  max-width: 1200px;
+  background-color: var(--parchment);
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  gap: 20px;
+  border: 4px solid var(--indian-saffron);
+  background-image: url('assets/constitution-bg.png');
+  background-blend-mode: overlay;
+}
+
+/* Game Stats Styling */
+#game-stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 10px 0;
+  padding: 15px;
+  background: linear-gradient(
+    to right,
+    var(--indian-saffron),
+    var(--indian-white),
+    var(--indian-green)
+  );
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+#level-display,
+#score-display,
+#time-display {
+  font-weight: bold;
+  padding: 8px 20px;
+  border-radius: 5px;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--indian-blue);
+}
+
+/* Progress Bar Styling */
+#progress-container {
+  width: 100%;
+  margin: 15px 0;
+}
+
+#progress-bar {
+  width: 100%;
+  height: 25px;
+  background: linear-gradient(to right, #FF9933, #FFFFFF, #138808);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid var(--indian-blue);
+}
+
+#progress {
+  width: 0%;
+  height: 100%;
+  background-color: rgba(0, 0, 128, 0.7);
+  transition: width 0.3s ease-in-out;
+}
+
+/* Game Area Styling */
+#game-area {
+  position: relative;
+  width: 100%;
+  max-height: 90vh;
+  margin: 20px auto;
+  border: 3px solid var(--indian-saffron);
+  border-radius: 12px;
+  background-color: var(--parchment);
+  overflow: hidden;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.game-bg {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  opacity: 0.9;
+}
+
+/* Hidden Objects Styling */
+.hidden-object {
+  position: absolute;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: default;
+  transition: all 0.3s ease;
+}
+
+.hidden-object:hover {
+  transform: scale(1.1);
+}
+
+/* Info Panel Styling */
+#info-panel {
+  width: 300px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  border: 3px solid var(--indian-green);
+  margin-top: 115px;
+}
+
+#info-panel h2 {
+  color: var(--indian-blue);
+  border-bottom: 3px solid var(--indian-saffron);
+  padding-bottom: 10px;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+/* Object List Styling */
+#object-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 10px;
+}
+
+.object-item {
+  width: 48%;
+  background-color: var(--parchment);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--indian-saffron);
+  transition: transform 0.3s ease;
+}
+
+.object-item:hover {
+  transform: translateY(-3px);
+}
+
+/* Educational Modal Styling */
+.educational-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--parchment);
+  padding: 25px;
+  border-radius: 15px;
+  border: 4px solid var(--indian-saffron);
+  max-width: 500px;
+  width: 90%;
+  z-index: 1000;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Celebration Screen */
+.celebration-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    var(--indian-saffron),
+    var(--indian-white),
+    var(--indian-green)
+  );
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+/* Ashoka Chakra Animation */
+.ashoka-chakra {
+  width: 100px;
+  height: 100px;
+  background-image: url('assets/ashoka-chakra.png');
+  background-size: contain;
+  animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  #main-container {
+    flex-direction: column;
+  }
+
+  #info-panel {
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .object-item {
+    width: 100%;
+  }
+}
+
+/* Button Styling */
+.game-button {
+  background-color: var(--indian-saffron);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.game-button:hover {
+  background-color: var(--indian-green);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Achievement Badge Styling */
+.achievement-badge {
+  background: linear-gradient(45deg, var(--royal-gold), var(--indian-saffron));
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px auto;
+  border: 3px solid var(--indian-blue);
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+/* Level Transition Animation */
+@keyframes levelTransition {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.level-container.active {
+  animation: levelTransition 0.5s ease-out forwards;
+}
+/* Add this to your existing CSS */
+.hidden-object.found {
+  cursor: default !important;
+  background-color: rgba(19, 136, 8, 0.2) !important;
+  border: 2px solid var(--indian-green) !important;
+}
+
+.hidden-object.found::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--indian-green);
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.hidden-object:not(.found):hover {
+  background-color: rgba(255, 153, 51, 0.2);
+  border-color: var(--indian-saffron);
+  transform: scale(1.1);
+}
+.level-container {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.level-container.active {
+    display: block;
+}
+  </style>
+</head>
+
+<body>
+  <div id="instructions-modal">
+    <div id="instructions-overlay">
+      <h1 style="color: #eba21c; margin-bottom: 20px;">Constitution Explorer Game</h1>
+      <div id="player-info" style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+        <div style="margin-bottom: 15px;">
+            <label for="player-name" style="display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem;">
+                Enter Your Name:
+            </label>
+            <input type="text" 
+                id="player-name" 
+                placeholder="Your Name" 
+                style="width: calc(100% - 20px); 
+                       padding: 8px; 
+                       border: 2px solid #eba21c; 
+                       border-radius: 5px; 
+                       font-size: 0.9rem;">
+        </div>
+        
+        <div style="margin-bottom: 10px;">
+            <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="checkbox" 
+                    id="terms-checkbox" 
+                    style="margin-right: 10px; 
+                           width: 16px; 
+                           height: 16px;">
+                <span style="font-size: 0.85rem;">I'm ready to explore the Constitution!</span>
+            </label>
+        </div>
+    </div>
+      <div id="game-instructions">
+        <h2 style="color: #eba21c; margin-bottom: 15px;">🎮 How to Play</h2>
+        <ul style="list-style-type: none; padding: 0; font-size: 18px;">
+          <li style="margin-bottom: 10px;">
+            <strong>🕵️ Objective:</strong> Find hidden constitutional objects in each level
+          </li>
+          <li style="margin-bottom: 10px;">
+            <strong>⏱️ Time Limit:</strong> Each level has a different time constraint
+          </li>
+          <li style="margin-bottom: 10px;">
+            <strong>🖱️ Gameplay:</strong> Click on hidden objects to discover constitutional facts
+          </li>
+          <li style="margin-bottom: 10px;">
+            <strong>📚 Learn:</strong> Each found object reveals educational information
+          </li>
+          <li style="margin-bottom: 10px;">
+            <strong>🏆 Goal:</strong> Complete all levels before time runs out
+          </li>
+        </ul>
+      </div>
+    
+
+    
+      <button id="start-game-btn">
+        Start Your Journey 🚀
+      </button>
+    </div>
+  </div>
+  <div id="main-container">
+    <!-- Game Area -->
+    <div id="game-container">
+      <h1>Constitution Explorer</h1>
+      <p>Find hidden objects related to the Constitution of India!</p>
+
+      <!-- Game Stats -->
+      <div id="game-stats">
+        <div id="level-display">Level: 1</div>
+        <div id="score-display">Score: 0</div>
+        <div id="time-display">Time: 60s</div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div id="progress-container">
+        <div style="
+              font-size: 14px;
+              margin-bottom: 5px;
+              text-align: left;
+              color: #666;
+            ">
+          Progress:
+        </div>
+        <div id="progress-bar">
+          <div id="progress"></div>
+        </div>
+      </div>
+
+      <!-- Game Area with Multiple Levels -->
+      <div id="game-area">
+        <!-- Level 1 -->
+        <div id="level-1" class="level-container active">
+          <img src="consti1.webp" alt="Background" class="game-bg" />
+          <div class="hidden-object" data-clue="Equality before law (Article 14)" style="top: 38%; left: 80%"></div>
+          <div class="hidden-object" data-clue="Right to Freedom of Speech (Article 19)" style="top: 47%; left: 62%">
+          </div>
+          <div class="hidden-object" data-clue="Directive Principles of State Policy (Part IV)"
+            style="top: 23%; left: 15%"></div>
+          <div class="hidden-object" data-clue="Right to Constitutional Remedies (Article 32)"
+            style="top: 82%; left: 30%"></div>
+        </div>
+        <!-- Additional levels... -->
+        <div id="level-2" class="level-container">
+          <img src="consti2.webp" alt="Background" class="game-bg" />
+          <div class="hidden-object" data-clue="Right to Education (Article 21A)" style="top: 53%; left: 15%"></div>
+          <div class="hidden-object" data-clue="Right to Life (Article 21)" style="top: 65%; left: 78%"></div>
+          <div class="hidden-object" data-clue="Freedom of Religion (Article 25)" style="top: 12%; left: 81%"></div>
+          <div class="hidden-object" data-clue="Right to Property (Article 300A)" style="top: 85%; left: 15%"></div>
+          <div class="hidden-object" data-clue="Right to Privacy" style="top: 40%; left: 44%"></div>
+          <div class="hidden-object" data-clue="Fundamental Duties" style="top: 40%; left: 80%"></div>
+        </div>
+
+        <!-- Level 3 -->
+        <div id="level-3" class="level-container">
+          <img src="consti3.webp" alt="Background" class="game-bg" />
+          <div class="hidden-object" data-clue="Right to Equality (Article 15)" style="top: 31%; left: 96%"></div>
+          <div class="hidden-object" data-clue="Freedom of Assembly (Article 19)" style="top: 26%; left: 30%"></div>
+          <div class="hidden-object" data-clue="Protection Against Discrimination" style="top: 16%; left: 5%"></div>
+          <div class="hidden-object" data-clue="Right to Practice Religion" style="top: 13%; left: 67%"></div>
+          <div class="hidden-object" data-clue="Cultural and Educational Rights" style="top: 82%; left: 8%"></div>
+          <div class="hidden-object" data-clue="Protection of Minorities" style="top: 87%; left: 36%"></div>
+          <div class="hidden-object" data-clue="Right to Constitutional Remedies" style="top: 72%; left: 80%"></div>
+          <div class="hidden-object" data-clue="Fundamental Rights" style="top: 67%; left: 3%"></div>
+        </div>
+      </div>
+
+      <div id="clue-box" style="display: none"></div>
+      <!-- Hidden Clue Box -->
+      <button id="restart-button">Restart</button>
+    </div>
+
+    <!-- Right Info Panel -->
+    <div id="info-panel">
+      <h2>Level 1: Fundamental Principles</h2>
+      <div id="object-list">
+        <!-- Dynamic content will be added here -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+    const gameArea = document.getElementById("game-area");
+    const levelContainers = document.querySelectorAll(".level-container");
+    const hiddenObjects = document.querySelectorAll(".hidden-object");
+    const clueBox = document.getElementById("clue-box");
+    const restartButton = document.getElementById("restart-button");
+    const levelDisplay = document.getElementById("level-display");
+    const scoreDisplay = document.getElementById("score-display");
+    const timeDisplay = document.getElementById("time-display");
+    const progressBar = document.getElementById("progress");
+    
+    const instructionsModal = document.getElementById('instructions-modal');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const mainContainer = document.getElementById('main-container');
+
+    let currentLevel = 1;
+    let totalScore = 0;
+    let score = 0;
+    let timeLeft = 60;
+    let timer;
+    let timerPaused = false;
+
+  
+
+    const levelHeadings = {
+        1: "Level 1: Fundamental Principles",
+        2: "Level 2: Rights and Duties",
+        3: "Level 3: Fundamental Rights and Protections",
+    };
+
+    // Check that all elements exist
+    if (instructionsModal && startGameBtn && mainContainer) {
+        startGameBtn.addEventListener('click', () => {
+            // Hide instructions modal
+            instructionsModal.style.display = 'none';
+
+            // Show game container
+            mainContainer.style.display = 'flex';
+
+            // Initialize game
+            initializeGame();
+        });
+    }
+
+    function initializeGame() {
+        // Reset game variables
+        currentLevel = 1;
+        totalScore = 0;
+        score = 0;
+        timeLeft = levels[currentLevel].timeLimit;
+
+        // Update game stats display
+        updateGameStats();
+
+        // Setup object clicks
+        setupObjectClicks();
+
+        // Update info panel for first level
+        updateInfoPanel(1);
+
+        // Start the timer for the first level
+        startTimer();
+    }
+
+    // Info panel content
+    function updateInfoPanel(level) {
+        const infoPanel = document.getElementById("info-panel");
+        const objectList = infoPanel.querySelector("#object-list");
+
+        // Update the heading based on the current level
+        const heading = levelHeadings[level];
+        infoPanel.querySelector("h2").textContent = heading;
+
+        const levelInfo = {
+            1: {
+                objects: [
+                    { image: "clue1.png" },
+                    { image: "clue2.png" },
+                    { image: "clue3.png" },
+                    { image: "clue4.png" },
+                ],
+            },
+            2: {
+                objects: [
+                    { image: "clue5.png" },
+                    { image: "clue6.png" },
+                    { image: "clue7.png" },
+                    { image: "clue8.png" },
+                    { image: "clue9.png" },
+                    { image: "clue10.png" },
+                ],
+            },
+            3: {
+                objects: [
+                    { image: "clue11.jpg" },
+                    { image: "clue12.jpg" },
+                    { image: "clue13.jpg" },
+                    { image: "clue14.jpg" },
+                    { image: "clue15.jpg" },
+                    { image: "clue16.jpg" },
+                    { image: "clue17.jpg" },
+                    { image: "clue18.jpg" },
+                ],
+            },
+        };
+
+        objectList.innerHTML = ""; // Clear previous content
+
+        levelInfo[level].objects.forEach((obj) => {
+            const objectDiv = document.createElement("div");
+            objectDiv.classList.add("object-item");
+            objectDiv.innerHTML = `
+                <img src="${obj.image}" alt="Clue Image" style="width: 100%; margin: 5px;">
+            `;
+            objectList.appendChild(objectDiv);
+        });
+    }
+
+    // Educational content (same as before)
+    const educationalContent = {
+        "Equality before law (Article 14)": {
+            title: "Equality Before Law",
+            description:
+              "Article 14 of the Indian Constitution guarantees equal protection of laws and prohibits discrimination based on race, gender, religion, or social status, promoting fairness and justice.",
+            funFact:
+              "This article applies not just to citizens, but to all persons in India, including foreigners.",
+          },
+          "Right to Freedom of Speech (Article 19)": {
+            title: "Freedom of Speech",
+            description:
+              "Article 19(1)(a) guarantees the fundamental right to freedom of speech and expression. This allows citizens to express their opinions freely, criticize the government, and participate in democratic discourse without fear of persecution.",
+            funFact:
+              "While freedom of speech is protected, it is not absolute and can be reasonably restricted to protect public order, decency, and national security.",
+          },
+          "Directive Principles of State Policy (Part IV)": {
+            title: "Directive Principles of State Policy",
+            description:
+              "Part IV of the Constitution contains guidelines for the government to create social and economic conditions that ensure the dignity and welfare of citizens. These principles are non-justiciable but fundamental to governance.",
+            funFact:
+              "While not legally enforceable, these principles have significantly influenced many landmark legislations in India, including land reforms and labor laws.",
+          },
+          "Right to Constitutional Remedies (Article 32)": {
+            title: "Right to Constitutional Remedies",
+            description:
+              "Article 32 is often called the 'heart and soul' of the Constitution. It provides citizens the right to approach the Supreme Court directly if their fundamental rights are violated, ensuring constitutional protections are meaningful and enforceable.",
+            funFact:
+              "The Supreme Court can issue writs like habeas corpus, mandamus, prohibition, quo warranto, and certiorari to enforce fundamental rights.",
+          },
+          "Right to Education (Article 21A)": {
+            title: "Right to Education",
+            description:
+              "Article 21A makes education a fundamental right for children between 6-14 years. It mandates free and compulsory education for all children in this age group.",
+            funFact:
+              "This right was added to the Constitution in 2002 through the 86th Constitutional Amendment Act.",
+          },
+          "Right to Life (Article 21)": {
+            title: "Right to Life",
+            description:
+              "Article 21 guarantees the right to life and personal liberty. It has been interpreted to include rights to clean environment, health, shelter, and dignity.",
+            funFact:
+              "This is considered the most important fundamental right and has been used to derive many other rights through judicial interpretation.",
+          },
+          "Freedom of Religion (Article 25)": {
+            title: "Freedom of Religion",
+            description:
+              "Article 25 ensures freedom of conscience and the right to freely profess, practice, and propagate religion, subject to public order and morality.",
+            funFact:
+              "This right extends to all persons, not just citizens, making India's secular fabric unique.",
+          },
+          "Right to Property (Article 300A)": {
+            title: "Right to Property",
+            description:
+              "Originally a fundamental right, now a legal right under Article 300A. It states that no person shall be deprived of property save by authority of law.",
+            funFact:
+              "It was moved from fundamental rights to legal rights through the 44th Constitutional Amendment in 1978.",
+          },
+          "Right to Privacy": {
+            title: "Right to Privacy",
+            description:
+              "Recognized as a fundamental right under Article 21 by the Supreme Court in 2017. It protects individual privacy, data protection, and personal autonomy.",
+            funFact:
+              "This right was established through the landmark Puttaswamy judgment, making India one of few countries with privacy as a fundamental right.",
+          },
+          "Fundamental Duties": {
+            title: "Fundamental Duties",
+            description:
+              "Added by the 42nd Amendment, these duties include respecting national symbols, promoting harmony, protecting environment, and developing scientific temper.",
+            funFact:
+              "There are 11 fundamental duties listed in Article 51A of the Constitution.",
+          },
+
+          // Level 3 Content
+          "Right to Equality (Article 15)": {
+            title: "Right to Equality",
+            description:
+              "Article 15 prohibits discrimination on grounds of religion, race, caste, sex, or place of birth. It allows special provisions for women, children, and socially disadvantaged groups.",
+            funFact:
+              "This article is the basis for reservation policies and affirmative action in India.",
+          },
+          "Freedom of Assembly (Article 19)": {
+            title: "Freedom of Assembly",
+            description:
+              "Part of Article 19(1)(b), it guarantees citizens the right to assemble peaceably and without arms, essential for democratic protests and public gatherings.",
+            funFact:
+              "This right was crucial during India's independence movement and continues to be vital for democratic expression.",
+          },
+          "Protection Against Discrimination": {
+            title: "Protection Against Discrimination",
+            description:
+              "Articles 15-18 collectively provide comprehensive protection against various forms of discrimination, ensuring equality in public spaces and opportunities.",
+            funFact:
+              "These protections extend to both public and private discrimination in certain contexts.",
+          },
+          "Right to Practice Religion": {
+            title: "Right to Practice Religion",
+            description:
+              "Articles 25-28 provide complete religious freedom, including the right to establish and maintain religious institutions and manage religious affairs.",
+            funFact:
+              "India's constitution uniquely balances religious freedom with social reform, allowing state intervention for social welfare.",
+          },
+          "Cultural and Educational Rights": {
+            title: "Cultural and Educational Rights",
+            description:
+              "Articles 29 and 30 protect minorities' rights to conserve their culture and establish educational institutions of their choice.",
+            funFact:
+              "These rights help preserve India's diverse cultural heritage and promote educational autonomy for minorities.",
+          },
+          "Protection of Minorities": {
+            title: "Protection of Minorities",
+            description:
+              "The Constitution provides special safeguards for linguistic, religious, and cultural minorities to preserve their distinct identity and rights.",
+            funFact:
+              "India is one of few countries with specific constitutional provisions for minority rights protection.",
+          },
+          "Right to Constitutional Remedies": {
+            title: "Right to Constitutional Remedies",
+            description:
+              "Article 32 empowers citizens to directly approach the Supreme Court for enforcement of fundamental rights through various writs.",
+            funFact:
+              "Dr. Ambedkar called this the 'heart and soul' of the Constitution.",
+          },
+          "Fundamental Rights": {
+            title: "Fundamental Rights",
+            description:
+              "Part III of the Constitution (Articles 12-35) contains fundamental rights, forming the basic framework of civil and political rights in India.",
+            funFact:
+              "These rights were inspired by the Universal Declaration of Human Rights and various other democratic constitutions.",
+          },
+    };
+
+    // Create educational modal
+    function createEducationalModal(content) {
+        timerPaused = true;
+
+        const modal = document.createElement("div");
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        `;
+
+        modal.innerHTML = `
+            <div style="background-color: white; padding: 30px; border-radius: 10px; width: 80%; max-width: 600px; max-height: 80%; overflow-y: auto;">
+                <h2>${content.title}</h2>
+                <p><strong>Description:</strong> ${content.description}</p>
+                <p><strong>Fun Fact:</strong> ${content.funFact}</p>
+                <button id="close-modal" style="margin-top: 20px; padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">Close</button>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Close modal and resume timer
+        const closeModal = () => {
+            document.body.removeChild(modal);
+            timerPaused = false;
+        };
+
+        modal.querySelector("#close-modal").addEventListener("click", closeModal);
+
+        modal.addEventListener("click", (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    }
+
+    // Update game stats
+    function updateGameStats() {
+        levelDisplay.textContent = `Level: ${currentLevel}`;
+        scoreDisplay.textContent = `Score: ${totalScore}`;
+        timeDisplay.textContent = `Time: ${timeLeft}s`;
+
+        const currentLevelObjects = document.querySelectorAll(
+            `#level-${currentLevel} .hidden-object`
+        );
+        const foundObjects = Array.from(currentLevelObjects).filter(
+            (obj) => obj.style.display === "none"
+        );
+        const progress =
+            (foundObjects.length / currentLevelObjects.length) * 100;
+        progressBar.style.width = `${progress}%`;
+    }
+
+    // Switch levels
+    function switchLevel(newLevel) {
+        document
+            .querySelector(".level-container.active")
+            .classList.remove("active");
+
+        const newLevelContainer = document.getElementById(
+            `level-${newLevel}`
+        );
+        newLevelContainer.classList.add("active");
+
+        currentLevel = newLevel;
+        score = 0;
+        timeLeft = levels[newLevel].timeLimit;
+
+        const hiddenObjectsInLevel =
+            newLevelContainer.querySelectorAll(".hidden-object");
+        hiddenObjectsInLevel.forEach((obj) => {
+            obj.style.display = "block";
+        });
+
+        updateGameStats();
+        updateInfoPanel(newLevel);
+        startTimer();
+    }
+
+    // Start timer
+    function startTimer() {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            // Only decrement time if not paused
+            if (!timerPaused) {
+                timeLeft--;
+                timeDisplay.textContent = `Time: ${timeLeft}s`;
+
+                if (timeLeft <= 0) {
+                    endGame(false);
+                }
+            }
+        }, 1000);
+    }
+    // Add these new level configurations
+const levels = {
+    1: {
+        timeLimit: 60,
+        pointsPerFind: 100,
+        objects: 4,
+        theme: "Fundamental Rights",
+        description: "Discover the basic rights guaranteed by the Indian Constitution"
+    },
+    2: {
+        timeLimit: 45,
+        pointsPerFind: 150,
+        objects: 6,
+        theme: "Directive Principles",
+        description: "Explore the guiding principles of state policy"
+    },
+    3: {
+        timeLimit: 30,
+        pointsPerFind: 200,
+        objects: 8,
+        theme: "Constitutional Structure",
+        description: "Learn about India's governmental framework"
+    }
+};
+
+// Add new styling elements
+const styles = `
+    :root {
+        --indian-saffron: #FF9933;
+        --indian-green: #138808;
+        --indian-blue: #000080;
+    }
+
+    .game-header {
+        background-color: var(--indian-saffron);
+        color: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+
+    #start-game-btn {
+        background-color: var(--indian-saffron);
+        border: 2px solid white;
+    }
+
+    .progress-bar {
+        background: linear-gradient(90deg, 
+            var(--indian-saffron) 0%, 
+            white 50%, 
+            var(--indian-green) 100%);
+    }
+`;
+
+// Add new educational content
+const constitutionalFacts = {
+    "Preamble": {
+        title: "The Preamble",
+        description: "The soul of the Indian Constitution",
+        funFact: "The words 'socialist' and 'secular' were added in 1976"
+    },
+    "Fundamental Rights": {
+        title: "Articles 12-35",
+        description: "Six fundamental rights guaranteed to all citizens",
+        funFact: "Right to Property was originally a fundamental right"
+    }
+    // Add more constitutional facts...
+};
+
+// Add celebration effects
+function showCelebration() {
+    const celebrationModal = document.createElement('div');
+    celebrationModal.innerHTML = `
+        <div class="celebration-content">
+            <h1>🎉 जय हिंद! 🎉</h1>
+            <p>You've mastered the Indian Constitution!</p>
+            <div class="ashoka-chakra-animation"></div>
+        </div>
+    `;
+    // Add celebration animations...
+}
+
+// Add sound effects
+const soundEffects = {
+    correct: new Audio('correct.mp3'),
+    levelUp: new Audio('levelup.mp3'),
+    gameOver: new Audio('gameover.mp3')
+};
+    // End game
+    function endGame(success) {
+    clearInterval(timer);
+
+    if (success) {
+        if (currentLevel < 4) { // Assuming 3 levels total
+            // Show level completion message
+            const levelCompleteModal = document.createElement('div');
+            levelCompleteModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.8);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+
+            levelCompleteModal.innerHTML = `
+                <div style="
+                    background-color: #eba21c;
+                    padding: 30px;
+                    border-radius: 15px;
+                    text-align: center;
+                    color: white;
+                ">
+                    <h2>Level ${currentLevel} Complete! 🎉</h2>
+                    <p>Score: ${totalScore}</p>
+                    <button id="next-level-btn" style="
+                        background-color: white;
+                        color: #eba21c;
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 5px;
+                        margin-top: 15px;
+                        cursor: pointer;
+                    ">Next Level</button>
+                </div>
+            `;
+
+            document.body.appendChild(levelCompleteModal);
+
+            // Add event listener to the next level button
+            document.getElementById('next-level-btn').addEventListener('click', () => {
+                document.body.removeChild(levelCompleteModal);
+                switchLevel(currentLevel + 1);
+            });
+
+        } else {
+            // Show final celebration (your existing celebration code)
+            // ... (keep your existing celebration modal code here)
+        }
+    } else {
+        // Game Over
+        const gameOverModal = document.createElement('div');
+        gameOverModal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        `;
+
+        gameOverModal.innerHTML = `
+            <div style="
+                background-color: #ff4444;
+                padding: 30px;
+                border-radius: 15px;
+                text-align: center;
+                color: white;
+            ">
+                <h2>Game Over!</h2>
+                <p>Final Score: ${totalScore}</p>
+                <button id="restart-game-btn" style="
+                    background-color: white;
+                    color: #ff4444;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    margin-top: 15px;
+                    cursor: pointer;
+                ">Try Again</button>
+            </div>
+        `;
+
+        document.body.appendChild(gameOverModal);
+
+        document.getElementById('restart-game-btn').addEventListener('click', () => {
+            document.body.removeChild(gameOverModal);
+            resetGame();
+        });
+    }
+}
+
+    // Reset game
+    function resetGame() {
+        currentLevel = 1;
+        totalScore = 0;
+        switchLevel(1);
+    }
+
+    // Handle object clicks
+    // In the setupObjectClicks function, modify the click handler:
+function setupObjectClicks() {
+    hiddenObjects.forEach((object) => {
+        object.addEventListener("click", () => {
+            if (!object.classList.contains('found')) {
+                const clue = object.getAttribute("data-clue");
+                clueBox.textContent = `Found: ${clue}`;
+
+                score++;
+                totalScore += levels[currentLevel].pointsPerFind;
+                
+                // Instead of hiding the object, mark it as found
+                object.classList.add('found');
+                
+                updateGameStats();
+
+                const content = educationalContent[clue];
+                if (content) {
+                    createEducationalModal(content);
+                }
+
+                const currentLevelObjects = document.querySelectorAll(
+                    `#level-${currentLevel} .hidden-object`
+                );
+                const remainingObjects = Array.from(currentLevelObjects).filter(
+                    (obj) => !obj.classList.contains('found')
+                );
+
+                if (remainingObjects.length === 0) {
+                    endGame(true);
+                }
+            }
+        });
+    });
+}
+
+// Modify the switchLevel function to reset found status:
+function switchLevel(newLevel) {
+    // Hide all level containers first
+    document.querySelectorAll('.level-container').forEach(container => {
+        container.classList.remove('active');
+    });
+
+    // Show the new level container
+    const newLevelContainer = document.getElementById(`level-${newLevel}`);
+    if (newLevelContainer) {
+        newLevelContainer.classList.add('active');
+        
+        currentLevel = newLevel;
+        score = 0;
+        timeLeft = levels[newLevel].timeLimit;
+
+        const hiddenObjectsInLevel = newLevelContainer.querySelectorAll(".hidden-object");
+        hiddenObjectsInLevel.forEach((obj) => {
+            obj.classList.remove('found');
+        });
+
+        updateGameStats();
+        updateInfoPanel(newLevel);
+        startTimer();
+    }
+}
+// Update the updateGameStats function:
+function updateGameStats() {
+    levelDisplay.textContent = `Level: ${currentLevel}`;
+    scoreDisplay.textContent = `Score: ${totalScore}`;
+    timeDisplay.textContent = `Time: ${timeLeft}s`;
+
+    const currentLevelObjects = document.querySelectorAll(
+        `#level-${currentLevel} .hidden-object`
+    );
+    const foundObjects = Array.from(currentLevelObjects).filter(
+        (obj) => obj.classList.contains('found')
+    );
+    const progress =
+        (foundObjects.length / currentLevelObjects.length) * 100;
+    progressBar.style.width = `${progress}%`;
+}});
+  </script>
+</body>
+
+</html>
